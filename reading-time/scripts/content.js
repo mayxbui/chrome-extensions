@@ -1,36 +1,53 @@
 function renderReadingTime(article){
-    // No article
+    // missing article -> return nothing
     if (!article){
-        return;
+        return; 
     }
 
-    const text = article.textContent;
+    const text = article.textContent;   // extract all text inside article
     const wordMatchRegExp = /[^\s]+/g;
-    // Regular expression
+        // regular expression: /.../ start and end 
+        // [^\s]: code pattern: find all groups of characters that aren’t spaces
+        //        ^ : not
+        //        \s: whitespace character, i.e. spaces, tabs, or newlines
+        // g : global --> find all matches
     const words = text.matchAll(wordMatchRegExp);
-    // .matchAll reurns iteration, convert arr to get word count
+    // .matchAll returns iteration over all matches with regex
     
     const wordCnt = [...words].length;
+    // spread syntax (...) converts iterator words into array and get word count
     const readingTime = Math.round(wordCnt/200);
+    // reading speed: 200 words/minute
     const badge = document.createElement("p");
-    // use the same styling as the publish information in article's header
 
     badge.classList.add("color-secondary-text","type--caption");
+    // use the same styling as the publish information in article's header
     badge.textContent = `⏱️ ${readingTime} min read`;
 
     // support API reference docs
     const heading = article.querySelector("h1");
     // support article docs with date
     const date = article.querySelector("time")?.parentNode;
-    // ?. means Optional Chaining. is like chaining operator (.) but instead of causing an error if condition is null, it return 'undefined' value.
+    // Optional chaining (?.) to get parent of <time> (if it exists)
+    // Like chaining operator (.) but instead of throwing an error
+    // if <time> is null, it return 'undefined' value.
 
     (date ?? heading).insertAdjacentElement("afterend", badge);
-    // Nullish coalescing (??) returns <heading> ì the <date> is null or undefined
+    // Nullish coalescing (??) 
+    //    If date exists → use it
+    //    Else → use heading
+    // element.insertAdjacentElement(position, newElement)
+    //    position:
+    //          beforebegin <new><element></element> 
+    //          afterbegin  <element><new>...</new></element>
+    //          beforeend   <element>...<new></new></element>
+    //          afterend    <element></element><new>
 
     const observer = new MutationObserver((mutations) =>{
+        // MutationObserver watches for changes in the DOM
     for(const mutation of mutations) {
         // If a new article was added.
-        for (const node of mutation.addedNotes) {
+        for (const node of mutation.addedNodes) {
             if (node instanceof Element && node.tagName === 'ARTICLE'){
                 // Render the reading time for this particular article
                 renderReadingTime(node);
@@ -46,6 +63,9 @@ function renderReadingTime(article){
     observer.observe(document.querySelector('devsite-content'), {
     childList: true
     });
+    // Tells the observer what to watch:
+    // The element <devsite-content> (the container for articles)
+    // childList: true means “watch for new child nodes being added/removed”
 }
 
 renderReadingTime(document.querySelector("article"));
